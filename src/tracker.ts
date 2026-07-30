@@ -1,15 +1,21 @@
 import { VerilogParser } from './parser';
 
+export interface TraceNode {
+    module: string;
+    target: string;
+    signal: string;
+}
+
 export class SignalTracker {
     constructor(private parser: VerilogParser) {}
 
-    public traceTopDown(moduleName: string, signalName: string): string[] {
-        const paths: string[] = [];
-        this.traceParent(moduleName, signalName, moduleName + '.' + signalName, paths, new Set());
-        return paths.length > 0 ? paths : [moduleName + '.' + signalName];
+    public traceTopDown(moduleName: string, signalName: string): TraceNode[][] {
+        const paths: TraceNode[][] = [];
+        this.traceParent(moduleName, signalName, [{ module: moduleName, target: moduleName, signal: signalName }], paths, new Set());
+        return paths.length > 0 ? paths : [[{ module: moduleName, target: moduleName, signal: signalName }]];
     }
 
-    private traceParent(moduleName: string, signalName: string, currentPath: string, paths: string[], visited: Set<string>) {
+    private traceParent(moduleName: string, signalName: string, currentPath: TraceNode[], paths: TraceNode[][], visited: Set<string>) {
         if (visited.has(moduleName)) return;
         visited.add(moduleName);
 
@@ -20,7 +26,13 @@ export class SignalTracker {
                     if (inst.connections.has(signalName)) {
                         const parentSignal = inst.connections.get(signalName)!;
                         hasParent = true;
-                        this.traceParent(parentName, parentSignal, parentName + '.' + parentSignal + ' -> ' + currentPath, paths, new Set(visited));
+                        // Replace the first element of currentPath with instance name if we want, but for top-down it's better to keep module context
+                        // Actually we can insert the parent node at the beginning
+                        const newNode = { module: parentName, target: parentName, signal: parentSignal };
+                        // Note: The connection is through inst.instanceName, we could change currentPath[0].target to inst.instanceName
+                        const updatedCurrentPath = [...currentPath];
+                        updatedCurrentPath[0] = { ...updatedCurrentPath[0], target: inst.instanceName, module: parentName };
+                        this.traceParent(parentName, parentSignal, [newNode, ...updatedCurrentPath], paths, new Set(visited));
                     }
                 }
             }
@@ -31,13 +43,13 @@ export class SignalTracker {
         }
     }
 
-    public traceBottomUp(moduleName: string, signalName: string): string[] {
-        const paths: string[] = [];
-        this.traceChild(moduleName, signalName, moduleName + '.' + signalName, paths, new Set());
-        return paths.length > 0 ? paths : [moduleName + '.' + signalName];
+    public traceBottomUp(moduleName: string, signalName: string): TraceNode[][] {
+        const paths: TraceNode[][] = [];
+        this.traceChild(moduleName, signalName, [{ module: moduleName, target: moduleName, signal: signalName }], paths, new Set());
+        return paths.length > 0 ? paths : [[{ module: moduleName, target: moduleName, signal: signalName }]];
     }
 
-    private traceChild(moduleName: string, signalName: string, currentPath: string, paths: string[], visited: Set<string>) {
+    private traceChild(moduleName: string, signalName: string, currentPath: TraceNode[], paths: TraceNode[][], visited: Set<string>) {
         if (visited.has(moduleName)) return;
         visited.add(moduleName);
 
@@ -52,7 +64,8 @@ export class SignalTracker {
             for (const [port, sig] of inst.connections.entries()) {
                 if (sig === signalName) {
                     hasChild = true;
-                    this.traceChild(inst.moduleName, port, currentPath + ' -> ' + inst.instanceName + '.' + port, paths, new Set(visited));
+                    const newNode = { module: moduleName, target: inst.instanceName, signal: port };
+                    this.traceChild(inst.moduleName, port, [...currentPath, newNode], paths, new Set(visited));
                 }
             }
         }
@@ -62,28 +75,28 @@ export class SignalTracker {
         }
     }
 
-    public traceFull(moduleName: string, signalName: string): string[] {
+    public traceFull(moduleName: string, signalName: string): TraceNode[][] {
         const upPaths = this.traceTopDown(moduleName, signalName);
         const downPaths = this.traceBottomUp(moduleName, signalName);
 
-        const fullPaths: string[] = [];
+        const fullPaths: TraceNode[][] = [];
         for (const up of upPaths) {
             for (const down of downPaths) {
-                const upParts = up.split(' -> ');
-                const downParts = down.split(' -> ');
-                
-                const upPart = upParts.slice(0, -1).join(' -> ');
-                const downPart = downParts.slice(1).join(' -> ');
-                
-                let combined = moduleName + '.' + signalName;
-                if (upPart) combined = upPart + ' -> ' + combined;
-                if (downPart) combined = combined + ' -> ' + downPart;
-                
-                fullPaths.push(combined);
+                // Merge up and down. The last element of up and the first element of down represent the same node.
+                // But up might have modified target to instanceName. We prefer up's version if it's longer than 1.
+                const merged = [...up.slice(0, -1), down[0], ...down.slice(1)];
+                if (up.length > 1) {
+                    merged[up.length - 1] = up[up.length - 1]; // Use the instance name from up path
+                }
+                fullPaths.push(merged);
             }
         }
         
-        // Remove duplicates just in case
-        return [...new Set(fullPaths)];
+        // Remove duplicates by stringifying
+        const unique = new Map<string, TraceNode[]>();
+        for (const p of fullPaths) {
+            unique.set(JSON.stringify(p), p);
+        }
+        return Array.from(unique.values());
     }
 }
