@@ -1,0 +1,34 @@
+{
+  "name": "verilog-dataflow-tracker",
+  "displayName": "Verilog Dataflow Tracker",
+  "description": "Trace Verilog signal dataflow when hovering over a variable",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:verilog",
+    "onLanguage:systemverilog"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [{
+      "id": "verilog",
+      "extensions": [".v", ".sv"]
+    }]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.90.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.5"
+  }
+}
