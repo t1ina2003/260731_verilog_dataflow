@@ -69,7 +69,10 @@ export class VerilogParser {
                     'assign', 'always_ff', 'always_comb', 'always_latch', 'logic', 'wire', 'reg', 'integer',
                     'genvar', 'generate', 'endgenerate', 'begin', 'end', 'function', 'endfunction', 'task', 'endtask', 'return'
                 ]);
-                if (keywords.has(instModuleName) || keywords.has(instName)) continue;
+                if (keywords.has(instModuleName) || keywords.has(instName)) {
+                    instRegex.lastIndex = instMatch.index + instMatch[1].length;
+                    continue;
+                }
 
                 const connections = new Map<string, string>();
                 const portRegex = /\.\s*([a-zA-Z_]\w*)\s*\(\s*([^)]+)\s*\)/g;
