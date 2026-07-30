@@ -27,8 +27,11 @@ export class VerilogParser {
     private async parseFile(fileUri: vscode.Uri) {
         const content = fs.readFileSync(fileUri.fsPath, 'utf8');
         
-        // Remove comments
-        const cleanContent = content.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+        // Remove comments and compiler directives
+        const cleanContent = content
+            .replace(/\/\/.*$/gm, '')
+            .replace(/\/\*[\s\S]*?\*\//g, '')
+            .replace(/`(?:ifdef|ifndef|else|elsif|endif|define|undef|include|timescale|default_nettype)\b.*$/gm, '');
         
         const moduleRegex = /\bmodule\s+([a-zA-Z_]\w*)/g;
         let moduleMatch;
@@ -61,8 +64,12 @@ export class VerilogParser {
                 const instName = instMatch[2];
                 const portsStr = instMatch[3];
 
-                const keywords = new Set(['module', 'always', 'initial', 'if', 'else', 'for', 'while', 'case', 'assign', 'always_ff', 'always_comb', 'logic', 'wire', 'reg']);
-                if (keywords.has(instModuleName)) continue;
+                const keywords = new Set([
+                    'module', 'endmodule', 'always', 'initial', 'if', 'else', 'for', 'while', 'case', 'endcase',
+                    'assign', 'always_ff', 'always_comb', 'always_latch', 'logic', 'wire', 'reg', 'integer',
+                    'genvar', 'generate', 'endgenerate', 'begin', 'end', 'function', 'endfunction', 'task', 'endtask', 'return'
+                ]);
+                if (keywords.has(instModuleName) || keywords.has(instName)) continue;
 
                 const connections = new Map<string, string>();
                 const portRegex = /\.\s*([a-zA-Z_]\w*)\s*\(\s*([^)]+)\s*\)/g;
