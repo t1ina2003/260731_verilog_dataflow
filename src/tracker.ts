@@ -4,6 +4,7 @@ export interface TraceNode {
     module: string;
     target: string;
     signal: string;
+    moduleType?: string; // 模組定義名稱（例如 top, submod_a 等）
 }
 
 export class SignalTracker {
@@ -11,8 +12,8 @@ export class SignalTracker {
 
     public traceTopDown(moduleName: string, signalName: string): TraceNode[][] {
         const paths: TraceNode[][] = [];
-        this.traceParent(moduleName, signalName, [{ module: moduleName, target: moduleName, signal: signalName }], paths, new Set());
-        return paths.length > 0 ? paths : [[{ module: moduleName, target: moduleName, signal: signalName }]];
+        this.traceParent(moduleName, signalName, [{ module: moduleName, target: moduleName, signal: signalName, moduleType: moduleName }], paths, new Set());
+        return paths.length > 0 ? paths : [[{ module: moduleName, target: moduleName, signal: signalName, moduleType: moduleName }]];
     }
 
     private traceParent(moduleName: string, signalName: string, currentPath: TraceNode[], paths: TraceNode[][], visited: Set<string>) {
@@ -26,12 +27,9 @@ export class SignalTracker {
                     if (inst.connections.has(signalName)) {
                         const parentSignal = inst.connections.get(signalName)!;
                         hasParent = true;
-                        // Replace the first element of currentPath with instance name if we want, but for top-down it's better to keep module context
-                        // Actually we can insert the parent node at the beginning
-                        const newNode = { module: parentName, target: parentName, signal: parentSignal };
-                        // Note: The connection is through inst.instanceName, we could change currentPath[0].target to inst.instanceName
+                        const newNode = { module: parentName, target: parentName, signal: parentSignal, moduleType: parentName };
                         const updatedCurrentPath = [...currentPath];
-                        updatedCurrentPath[0] = { ...updatedCurrentPath[0], target: inst.instanceName, module: parentName };
+                        updatedCurrentPath[0] = { ...updatedCurrentPath[0], target: inst.instanceName, module: parentName, moduleType: inst.moduleName };
                         this.traceParent(parentName, parentSignal, [newNode, ...updatedCurrentPath], paths, new Set(visited));
                     }
                 }
@@ -45,8 +43,8 @@ export class SignalTracker {
 
     public traceBottomUp(moduleName: string, signalName: string): TraceNode[][] {
         const paths: TraceNode[][] = [];
-        this.traceChild(moduleName, signalName, [{ module: moduleName, target: moduleName, signal: signalName }], paths, new Set());
-        return paths.length > 0 ? paths : [[{ module: moduleName, target: moduleName, signal: signalName }]];
+        this.traceChild(moduleName, signalName, [{ module: moduleName, target: moduleName, signal: signalName, moduleType: moduleName }], paths, new Set());
+        return paths.length > 0 ? paths : [[{ module: moduleName, target: moduleName, signal: signalName, moduleType: moduleName }]];
     }
 
     private traceChild(moduleName: string, signalName: string, currentPath: TraceNode[], paths: TraceNode[][], visited: Set<string>) {
@@ -64,7 +62,7 @@ export class SignalTracker {
             for (const [port, sig] of inst.connections.entries()) {
                 if (sig === signalName) {
                     hasChild = true;
-                    const newNode = { module: moduleName, target: inst.instanceName, signal: port };
+                    const newNode = { module: moduleName, target: inst.instanceName, signal: port, moduleType: inst.moduleName };
                     this.traceChild(inst.moduleName, port, [...currentPath, newNode], paths, new Set(visited));
                 }
             }
