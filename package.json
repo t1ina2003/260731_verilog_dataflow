@@ -23,7 +23,28 @@
           ".sv"
         ]
       }
-    ]
+    ],
+    "commands": [
+      {
+        "command": "verilogDataflow.addToBlockDiagram",
+        "title": "加入至 Dataflow 區塊圖 (Add to Block Diagram)",
+        "category": "Verilog Dataflow"
+      },
+      {
+        "command": "verilogDataflow.showBlockDiagram",
+        "title": "開啟 Dataflow 區塊圖 (Open Block Diagram)",
+        "category": "Verilog Dataflow"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "verilogDataflow.addToBlockDiagram",
+          "when": "editorLangId == verilog || editorLangId == systemverilog",
+          "group": "verilogDataflow@1"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

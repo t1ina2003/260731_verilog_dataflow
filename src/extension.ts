@@ -1,19 +1,23 @@
 import * as vscode from 'vscode';
 import { VerilogParser } from './parser';
 import { SignalTracker } from './tracker';
+import { BlockDiagramPanel } from './diagramPanel';
 
 export async function activate(context: vscode.ExtensionContext) {
     const parser = new VerilogParser();
     const tracker = new SignalTracker(parser);
 
+    // 解析工作區中的 Verilog 檔案
     await parser.parseWorkspace();
 
+    // 檔案變更監聽器
     const watcher = vscode.workspace.createFileSystemWatcher('**/*.{v,sv}');
     watcher.onDidChange(async () => await parser.parseWorkspace());
     watcher.onDidCreate(async () => await parser.parseWorkspace());
     watcher.onDidDelete(async () => await parser.parseWorkspace());
     context.subscriptions.push(watcher);
 
+    // 跳轉至程式碼位置指令
     const gotoCommand = vscode.commands.registerCommand('verilogDataflow.goto', async (args: { module: string, target: string, signal?: string }) => {
         const modDef = parser.modules.get(args.module);
         if (!modDef) return;
@@ -46,6 +50,49 @@ export async function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(gotoCommand);
 
+    // 右鍵選單：將選中的 Dataflow 加入至 Block Diagram 視窗
+    const addToBlockDiagramCommand = vscode.commands.registerCommand('verilogDataflow.addToBlockDiagram', async () => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            vscode.window.showWarningMessage('請先開啟 Verilog 檔案');
+            return;
+        }
+
+        let signalName = '';
+        const selection = editor.selection;
+        if (!selection.isEmpty) {
+            signalName = editor.document.getText(selection).trim();
+        } else {
+            const range = editor.document.getWordRangeAtPosition(editor.selection.active);
+            if (range) {
+                signalName = editor.document.getText(range).trim();
+            }
+        }
+
+        if (!signalName) {
+            vscode.window.showWarningMessage('請選取或將游標移至欲追蹤之 Verilog 訊號名稱上');
+            return;
+        }
+
+        const moduleName = parser.findModuleByUri(editor.document.uri);
+        if (!moduleName) {
+            vscode.window.showWarningMessage('無法在此檔案中識別對應的 Verilog 模組');
+            return;
+        }
+
+        const paths = tracker.traceFull(moduleName, signalName);
+        const panel = BlockDiagramPanel.createOrShow(context.extensionUri);
+        panel.addFlow(moduleName, signalName, paths);
+    });
+    context.subscriptions.push(addToBlockDiagramCommand);
+
+    // 指令：開啟 Dataflow Block Diagram 視窗
+    const showBlockDiagramCommand = vscode.commands.registerCommand('verilogDataflow.showBlockDiagram', () => {
+        BlockDiagramPanel.createOrShow(context.extensionUri);
+    });
+    context.subscriptions.push(showBlockDiagramCommand);
+
+    // 懸浮提示 Hover 提供者
     const hoverProvider = vscode.languages.registerHoverProvider(
         [{ scheme: 'file', language: 'verilog' }, { scheme: 'file', language: 'systemverilog' }],
         {
