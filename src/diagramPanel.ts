@@ -249,29 +249,34 @@ export class BlockDiagramPanel {
 
         /* 工具列 Header */
         .toolbar {
-            height: 44px;
+            min-height: 40px;
             background-color: var(--panel-bg);
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 16px;
+            padding: 4px 12px;
             flex-shrink: 0;
             z-index: 10;
+            flex-wrap: wrap;
+            gap: 6px 12px;
         }
 
         .title-area {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
 
         .title-area h2 {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 6px;
+            white-space: nowrap;
         }
 
         .count-badge {
@@ -281,25 +286,34 @@ export class BlockDiagramPanel {
             border-radius: 12px;
             font-size: 11px;
             font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .controls {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
         }
 
         .btn {
             background-color: var(--card-bg);
             color: var(--fg-color);
             border: 1px solid var(--border-color);
-            padding: 5px 10px;
+            padding: 4px 8px;
+            height: 26px;
             border-radius: 4px;
             cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 5px;
-            font-size: 12px;
+            justify-content: center;
+            gap: 4px;
+            font-size: 11.5px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            line-height: 1;
             transition: all 0.15s ease;
         }
 

@@ -44,7 +44,7 @@ export interface I18nStrings {
 // 語系字典
 export const I18N_DICTIONARIES: Record<SupportedLocale, I18nStrings> = {
     'en': {
-        title: '⚡ Verilog Dataflow Block Diagram',
+        title: '⚡ Verilog Dataflow Diagram',
         zoomIn: '➕ Zoom In',
         zoomInTitle: 'Zoom In',
         zoomOut: '➖ Zoom Out',
