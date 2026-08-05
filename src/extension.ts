@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { VerilogParser } from './parser';
 import { SignalTracker } from './tracker';
 import { BlockDiagramPanel } from './diagramPanel';
+import { getI18n } from './i18n';
 
 export async function activate(context: vscode.ExtensionContext) {
     const parser = new VerilogParser();
@@ -52,9 +53,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
     // 右鍵選單：將選中的 Dataflow 加入至 Block Diagram 視窗
     const addToBlockDiagramCommand = vscode.commands.registerCommand('verilogDataflow.addToBlockDiagram', async () => {
+        const i18n = getI18n();
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
-            vscode.window.showWarningMessage('請先開啟 Verilog 檔案');
+            vscode.window.showWarningMessage(i18n.openFileWarning);
             return;
         }
 
@@ -70,13 +72,13 @@ export async function activate(context: vscode.ExtensionContext) {
         }
 
         if (!signalName) {
-            vscode.window.showWarningMessage('請選取或將游標移至欲追蹤之 Verilog 訊號名稱上');
+            vscode.window.showWarningMessage(i18n.selectSignalWarning);
             return;
         }
 
         const moduleName = parser.findModuleByUri(editor.document.uri);
         if (!moduleName) {
-            vscode.window.showWarningMessage('無法在此檔案中識別對應的 Verilog 模組');
+            vscode.window.showWarningMessage(i18n.noModuleWarning);
             return;
         }
 

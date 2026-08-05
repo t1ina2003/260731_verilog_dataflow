@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { TraceNode } from './tracker';
+import { getCurrentLocale, getI18n, formatString } from './i18n';
 
 export interface DataFlowItem {
     id: string;
@@ -25,6 +26,15 @@ const COLOR_PALETTE = [
     '#818cf8', // 靛藍 (Indigo)
     '#e879f9'  // 霓虹紫 (Fuchsia)
 ];
+
+function escapeHtml(str: string): string {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
 
 export class BlockDiagramPanel {
     public static currentPanel: BlockDiagramPanel | undefined;
@@ -109,6 +119,8 @@ export class BlockDiagramPanel {
 
     // 新增一條 Dataflow
     public addFlow(sourceModule: string, sourceSignal: string, paths: TraceNode[][]) {
+        const i18n = getI18n();
+
         // 檢查是否已存在相同 module 及 signal 的 flow
         const existingIndex = this._flows.findIndex(
             f => f.sourceModule === sourceModule && f.sourceSignal === sourceSignal
@@ -118,7 +130,9 @@ export class BlockDiagramPanel {
             // 已存在則更新其路徑並設為顯示
             this._flows[existingIndex].paths = paths;
             this._flows[existingIndex].visible = true;
-            vscode.window.showInformationMessage(`已更新 Dataflow: ${sourceModule}.${sourceSignal}`);
+            vscode.window.showInformationMessage(
+                formatString(i18n.flowUpdated, { name: `${sourceModule}.${sourceSignal}` })
+            );
         } else {
             const color = COLOR_PALETTE[this._colorIndex % COLOR_PALETTE.length];
             this._colorIndex++;
@@ -134,7 +148,9 @@ export class BlockDiagramPanel {
                 addedAt: Date.now()
             };
             this._flows.push(newFlow);
-            vscode.window.showInformationMessage(`已將 Dataflow ${sourceModule}.${sourceSignal} 加入至區塊圖`);
+            vscode.window.showInformationMessage(
+                formatString(i18n.flowAdded, { name: `${sourceModule}.${sourceSignal}` })
+            );
         }
 
         this._sendFlows();
@@ -185,12 +201,15 @@ export class BlockDiagramPanel {
     }
 
     private _getHtmlForWebview(): string {
+        const locale = getCurrentLocale();
+        const i18n = getI18n(locale);
+
         return `<!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="${locale}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verilog Dataflow Block Diagram</title>
+    <title>${escapeHtml(i18n.title)}</title>
     <style>
         :root {
             --bg-color: var(--vscode-editor-background, #1e1e2e);
@@ -606,16 +625,16 @@ export class BlockDiagramPanel {
     <!-- 頂部工具列 -->
     <div class="toolbar">
         <div class="title-area">
-            <h2>⚡ Verilog Dataflow Block Diagram</h2>
-            <span class="count-badge" id="flow-count-badge">0 Dataflows</span>
+            <h2>${escapeHtml(i18n.title)}</h2>
+            <span class="count-badge" id="flow-count-badge">0 ${escapeHtml(i18n.dataflowUnitPlural)}</span>
         </div>
         <div class="controls">
-            <button class="btn" id="btn-zoom-in" title="放大">➕ 放大</button>
-            <button class="btn" id="btn-zoom-out" title="縮小">➖ 縮小</button>
-            <button class="btn" id="btn-fit-view" title="最適大小">⛶ 最適大小</button>
-            <button class="btn" id="btn-auto-layout" title="重新自動排版">↺ 重新排版</button>
-            <button class="btn btn-danger" id="btn-clear-all" title="清空全部">✕ 清空</button>
-            <button class="btn" id="btn-toggle-sidebar" title="切換清單面板">📋 清單</button>
+            <button class="btn" id="btn-zoom-in" title="${escapeHtml(i18n.zoomInTitle)}">${escapeHtml(i18n.zoomIn)}</button>
+            <button class="btn" id="btn-zoom-out" title="${escapeHtml(i18n.zoomOutTitle)}">${escapeHtml(i18n.zoomOut)}</button>
+            <button class="btn" id="btn-fit-view" title="${escapeHtml(i18n.fitViewTitle)}">${escapeHtml(i18n.fitView)}</button>
+            <button class="btn" id="btn-auto-layout" title="${escapeHtml(i18n.autoLayoutTitle)}">${escapeHtml(i18n.autoLayout)}</button>
+            <button class="btn btn-danger" id="btn-clear-all" title="${escapeHtml(i18n.clearAllTitle)}">${escapeHtml(i18n.clearAll)}</button>
+            <button class="btn" id="btn-toggle-sidebar" title="${escapeHtml(i18n.sidebarToggleTitle)}">${escapeHtml(i18n.sidebarToggle)}</button>
         </div>
     </div>
 
@@ -636,16 +655,16 @@ export class BlockDiagramPanel {
             <!-- 空狀態提示 -->
             <div class="empty-state" id="empty-state">
                 <div class="empty-state-icon">🔲 ➔ 🔲</div>
-                <h3>尚未加入 Dataflow</h3>
-                <p>在 Verilog 程式碼中的訊號名稱上點選右鍵，選擇<strong>「加入至 Dataflow 區塊圖」</strong>，即可在此檢視模組與訊號流向區塊圖。</p>
+                <h3>${escapeHtml(i18n.emptyTitle)}</h3>
+                <p>${i18n.emptyDesc}</p>
             </div>
         </div>
 
         <!-- 側邊 Dataflow 清單 -->
         <div class="flow-sidebar collapsed" id="flow-sidebar">
             <div class="sidebar-header">
-                <span>已加入 Dataflow 列表</span>
-                <span id="active-flow-text">0 / 0 顯示中</span>
+                <span>${escapeHtml(i18n.sidebarHeader)}</span>
+                <span id="active-flow-text">0 / 0 ${escapeHtml(i18n.activeText)}</span>
             </div>
             <div class="flow-list" id="flow-list">
                 <!-- 由 JS 動態渲染 -->
@@ -658,6 +677,7 @@ export class BlockDiagramPanel {
 
     <script>
         const vscode = acquireVsCodeApi();
+        const I18N = ${JSON.stringify(i18n)};
 
         // 狀態管理
         let flows = [];
@@ -800,11 +820,12 @@ export class BlockDiagramPanel {
         function renderSidebar() {
             flowListEl.innerHTML = '';
             const activeCount = flows.filter(f => f.visible).length;
-            flowCountBadge.textContent = \`\${flows.length} Dataflows\`;
-            activeFlowText.textContent = \`\${activeCount} / \${flows.length} 顯示中\`;
+            const unit = flows.length === 1 ? I18N.dataflowUnitSingular : I18N.dataflowUnitPlural;
+            flowCountBadge.textContent = \`\${flows.length} \${unit}\`;
+            activeFlowText.textContent = \`\${activeCount} / \${flows.length} \${I18N.activeText}\`;
 
             if (flows.length === 0) {
-                flowListEl.innerHTML = '<div style="padding: 12px; color: var(--text-muted); text-align: center;">尚未加入任何 Dataflow</div>';
+                flowListEl.innerHTML = \`<div style="padding: 12px; color: var(--text-muted); text-align: center;">\${I18N.noDataflows}</div>\`;
                 return;
             }
 
@@ -814,9 +835,10 @@ export class BlockDiagramPanel {
 
                 // 產生路徑簡介字串
                 const pathSummary = flow.paths.map(p => 
-                    p.map(n => \`\${n.target}.\${n.signal}\`).join(' ➔ ')
+                    p.map(n => \`\${escapeHtml(n.target)}.\${escapeHtml(n.signal)}\`).join(' ➔ ')
                 ).join('<br/>');
 
+                const toggleTitle = flow.visible ? I18N.hideFlow : I18N.showFlow;
                 card.innerHTML = \`
                     <div class="flow-card-top">
                         <div class="flow-card-title">
@@ -824,10 +846,10 @@ export class BlockDiagramPanel {
                             <span>\${escapeHtml(flow.name)}</span>
                         </div>
                         <div class="flow-actions">
-                            <button class="icon-btn" title="\${flow.visible ? '隱藏此 Dataflow' : '顯示此 Dataflow'}" data-action="toggle" data-id="\${flow.id}">
+                            <button class="icon-btn" title="\${escapeHtml(toggleTitle)}" data-action="toggle" data-id="\${flow.id}">
                                 \${flow.visible ? '👁️' : '🕶️'}
                             </button>
-                            <button class="icon-btn delete" title="移除此 Dataflow" data-action="delete" data-id="\${flow.id}">
+                            <button class="icon-btn delete" title="\${escapeHtml(I18N.removeFlow)}" data-action="delete" data-id="\${flow.id}">
                                 ✕
                             </button>
                         </div>
@@ -850,7 +872,12 @@ export class BlockDiagramPanel {
         }
 
         function escapeHtml(str) {
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
         }
 
         // 渲染 SVG 區塊圖
@@ -868,7 +895,7 @@ export class BlockDiagramPanel {
             emptyState.style.display = 'none';
 
             // 1. 建立圖結構 (Blocks & Wires)
-            // Block ID: module + '_' + target (確保唯一)
+            // Block ID: module + '::' + target (確保唯一)
             const blockMap = new Map(); // blockId -> { id, module, target, moduleType, isModuleRoot, ports: Set<string>, rank: 0 }
             const wireList = []; // { fromBlockId, fromPort, toBlockId, toPort, flowColor, flowId, signalName }
 
@@ -941,7 +968,7 @@ export class BlockDiagramPanel {
             const COL_GAP = 120;
             const ROW_GAP = 40;
 
-            const blockLayouts = new Map(); // blockId -> { x, y, width, height, portPositions: Map<port, {x, y, isRight}> }
+            const blockLayouts = new Map(); // blockId -> { x, y, width, height, portPositions: Map<port, {left, right}> }
 
             const sortedRanks = Array.from(rankGroups.keys()).sort((a, b) => a - b);
             sortedRanks.forEach((rank, colIdx) => {
@@ -969,7 +996,6 @@ export class BlockDiagramPanel {
                     let portIdx = 0;
                     block.ports.forEach(port => {
                         const portY = y + HEADER_HEIGHT + portIdx * PORT_HEIGHT + PORT_HEIGHT / 2 + 6;
-                        // 預設左邊為 input/inlet (x), 右邊為 output/outlet (x + BLOCK_WIDTH)
                         portPositions.set(port, {
                             left: { x: x, y: portY },
                             right: { x: x + BLOCK_WIDTH, y: portY }
@@ -1033,7 +1059,9 @@ export class BlockDiagramPanel {
                 const layout = blockLayouts.get(block.id);
                 if (!layout) return;
 
-                const subLabel = block.isModuleRoot ? 'Top Module' : (block.moduleType ? \`module: \${block.moduleType}\` : \`module: \${block.module}\`);
+                const subLabel = block.isModuleRoot
+                    ? I18N.topModuleLabel
+                    : (block.moduleType ? \`\${I18N.moduleLabelPrefix}: \${block.moduleType}\` : \`\${I18N.moduleLabelPrefix}: \${block.module}\`);
                 const titleLabel = block.target;
 
                 let portsSvg = '';
@@ -1109,7 +1137,7 @@ export class BlockDiagramPanel {
                 });
 
                 el.addEventListener('mouseenter', (e) => {
-                    showTooltip(e.clientX, e.clientY, \`點擊跳轉至程式碼:<br/><strong>\${target}.\${sig}</strong> (\${mod})\`);
+                    showTooltip(e.clientX, e.clientY, \`\${I18N.jumpToCode}<br/><strong>\${escapeHtml(target)}.\${escapeHtml(sig)}</strong> (\${escapeHtml(mod)})\`);
                 });
                 el.addEventListener('mouseleave', () => hideTooltip());
             });
