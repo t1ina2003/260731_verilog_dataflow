@@ -5,6 +5,11 @@ A VS Code extension that helps you trace Verilog signal dataflow by showing sign
 ## Features
 
 - **Signal Tracing**: Hover over any Verilog signal to see its complete dataflow path
+- **Block Diagram Visualization (區塊圖視覺化)**: Right-click on any signal and select **"加入至 Dataflow 區塊圖 (Add to Block Diagram)"** to visualize the signal flow across modules as an interactive hardware block diagram.
+- **Multiple Dataflow Overlay**: Supports adding and managing multiple signal flows simultaneously with distinct color coding, toggle visibility, and deletion.
+- **Interactive Navigation & Controls**:
+  - Click any module block or port in the diagram to navigate directly to the corresponding Verilog code definition.
+  - Infinite smooth Canvas Pan, Zoom, Fit View, and custom block dragging.
 - **Hierarchical Tracking**: Traces signals through module instantiations (both up and down the hierarchy)
 - **Automatic Parsing**: Automatically parses all `.v` and `.sv` files in your workspace
 - **Real-time Updates**: Monitors file changes and updates the signal database
@@ -12,11 +17,12 @@ A VS Code extension that helps you trace Verilog signal dataflow by showing sign
 ## Usage
 
 1. Open a Verilog project in VS Code
-2. Hover over any signal name
-3. View the complete dataflow path showing:
-   - Parent module connections (top-down)
-   - Child module connections (bottom-up)
-   - Full signal path through the design hierarchy
+2. **Hover Tracing**: Hover over any signal name to see the full text path
+3. **Block Diagram Visualization**:
+   - Right-click on a signal name (or selected text) in the editor
+   - Select **「加入至 Dataflow 區塊圖 (Add to Block Diagram)」**
+   - The Block Diagram window will open side-by-side displaying the modules, ports, and signal flow
+   - Repeat for other signals to overlay multiple dataflows in different colors!
 
 ## Example
 
