@@ -1,0 +1,48 @@
+Verilog Dataflow Tracker - End User License Agreement (EULA)
+
+Copyright (c) 2026 ZSCodeWork. All rights reserved.
+
+Verilog Dataflow Tracker (以下簡稱「本軟體」) 為 ZSCodeWork 擁有之專有軟體（Proprietary Software），受中華民國著作權法、國際版權條約及相關智慧財產權法律之保護。
+
+當您下載、安裝、複製或使用本軟體時，即表示您已閱讀、理解並同意接受本授權合約之所有條款約束。
+
+--------------------------------------------------------------------------------
+條款與條件 (Terms and Conditions)
+--------------------------------------------------------------------------------
+
+1. 授權使用範圍 (Grant of License)
+- 免費使用 (Free to Use)：本軟體為免費軟體（Freeware）。任何個人、學術單位、研究機構皆可免費下載與使用本軟體。
+- 允許商業與企業使用 (Commercial & Enterprise Use Permitted)：本軟體明確允許各類型公司、商業組織與營利實體在其內部環境中免費安裝與使用，無須支付任何授權費用。
+- 多裝置安裝 (Multiple Installations)：您可以在多台電腦、伺服器或虛擬機環境中自由安裝與啟用本軟體，無安裝數量之限制。
+
+2. 散布與重新分發 (Distribution & Redistribution)
+- 允許重新散布安裝檔 (Redistribution of .vsix Permitted)：在保持本授權文件、版權宣告及軟體完整性不變的前提下，允許任何人自由轉發、重新散布未經修改的官方安裝套件（.vsix 檔案）。
+- 禁止單獨販售 (No Resale)：嚴禁將本軟體、其安裝套件（.vsix）或其任何部分作為獨立商品進行出租、販售、收取費用或獲取直接商業利益。
+- 禁止逆向工程與衍生創作 (No Reverse Engineering or Derivative Works)：未經著作權人事前書面許可，您不得對本軟體之二進位代碼或編譯產物進行反組譯（Disassemble）、反編譯（Decompile）、逆向工程（Reverse Engineer）、修改、拆解或創作衍生版本。
+
+3. 隱私與資料收集 (Privacy & Data Collection)
+- 零資料收集 (Zero Data Collection / No Telemetry)：本軟體所有訊號追蹤與波形/方塊圖解析邏輯均完全在使用者本地端（Local Machine）執行。
+- 保證不收集代碼或資料 (Strict Privacy)：本軟體不會收集、儲存、上傳或追蹤使用者的任何個人資訊、程式碼內容、硬體資料或使用統計數據。
+
+4. 免責聲明與無技術支援義務 (Disclaimer of Warranty & Support)
+- 現況提供 (AS IS)：本軟體係依「現況」（AS IS）基礎提供，著作權人不提供任何明示或暗示之擔保，包括但不限於對適銷性、特定用途適用性或無侵權之擔保。
+- 無技術支援與維護義務 (No Dedicated Support Obligation)：著作權人無義務對本軟體提供後續之技術支援、諮詢服務、錯誤修復（Bug Fixes）或功能更新。
+- 責任限制 (Limitation of Liability)：在適用法律允許的最大範圍內，著作權人對於因使用或無法使用本軟體所產生之任何直接、間接、附帶、衍生性、懲罰性或特殊損害（包括但不限於營業利益損失、業務中斷、資料遺失或設備損壞），均不負任何賠償責任。
+
+--------------------------------------------------------------------------------
+English Version (Summary for Reference)
+--------------------------------------------------------------------------------
+
+1. License Grant
+- Free of Charge: Granted for personal, academic, and commercial/enterprise internal use at no cost.
+- Multi-Device: You may install the Software on any number of computers/devices.
+
+2. Distribution & Restrictions
+- Redistribution of .vsix: You may redistribute the unmodified official .vsix package provided this license remains intact.
+- No Resale & No Reverse Engineering: You may not sell, decompile, reverse engineer, or create derivative works from this Software without explicit permission.
+
+3. Privacy
+- No Telemetry: The Software runs completely offline/locally and collects zero telemetry, personal data, or code data.
+
+4. Disclaimer
+- AS IS: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. THE AUTHOR HAS NO OBLIGATION TO PROVIDE SUPPORT OR UPDATES AND SHALL NOT BE LIABLE FOR ANY DAMAGES ARISING FROM ITS USE.
