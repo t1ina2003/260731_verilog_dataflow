@@ -642,7 +642,7 @@ export class BlockDiagramPanel {
         </div>
 
         <!-- 側邊 Dataflow 清單 -->
-        <div class="flow-sidebar" id="flow-sidebar">
+        <div class="flow-sidebar collapsed" id="flow-sidebar">
             <div class="sidebar-header">
                 <span>已加入 Dataflow 列表</span>
                 <span id="active-flow-text">0 / 0 顯示中</span>
