@@ -27,12 +27,12 @@
     "commands": [
       {
         "command": "verilogDataflow.addToBlockDiagram",
-        "title": "加入至 Dataflow 區塊圖 (Add to Block Diagram)",
+        "title": "Add to Block Diagram",
         "category": "Verilog Dataflow"
       },
       {
         "command": "verilogDataflow.showBlockDiagram",
-        "title": "開啟 Dataflow 區塊圖 (Open Block Diagram)",
+        "title": "Open Block Diagram",
         "category": "Verilog Dataflow"
       }
     ],
@@ -57,9 +57,13 @@
     "@types/vscode": "^1.90.0",
     "typescript": "^5.4.5"
   },
-  "publisher": "your-name",
+  "publisher": "ZSCodeWork",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/verilog-dataflow-tracker"
-  }
+    "url": "https://github.com/t1ina2003/260731_verilog_dataflow"
+  },
+  "bugs": {
+    "url": "https://github.com/your-name/your-extension/issues"
+  },
+  "license": "MIT"
 }
