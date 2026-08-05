@@ -57,6 +57,7 @@
     "@types/vscode": "^1.90.0",
     "typescript": "^5.4.5"
   },
+  "icon": "images/icon.png",
   "publisher": "ZSCodeWork",
   "repository": {
     "type": "git",
