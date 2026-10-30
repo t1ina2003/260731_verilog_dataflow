@@ -38,6 +38,12 @@ top.clk -> submod.data_in -> submod.instance.port_a
 
 ## Release Notes
 
+### 0.0.2
+
+- Open-source release under the MIT License
+- Updated extension icon and branding
+- Re-packaged with 100% offline and zero-telemetry guarantee
+
 ### 0.0.1
 
 Initial release with basic dataflow tracking functionality.
