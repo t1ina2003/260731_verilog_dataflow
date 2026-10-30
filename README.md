@@ -48,7 +48,5 @@ Issues and pull requests are welcome!
 
 ## License
 
-This software is released under a **Proprietary Freeware License (EULA)**.
-- **Free for Personal, Academic & Commercial Use** (允許個人、學術及企業內部免費使用)
-- **Zero Telemetry / 100% Offline** (零資料收集，完全本地端執行)
-- For full terms, please refer to [LICENSE.md](LICENSE.md).
+This project is licensed under the [MIT License](LICENSE).
+- **100% Offline & Zero Telemetry** (零資料收集，完全於本地端執行，確保硬體設計代碼安全)
