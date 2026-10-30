@@ -2,7 +2,7 @@
   "name": "verilog-dataflow-tracker",
   "displayName": "Verilog Dataflow Tracker",
   "description": "Trace Verilog signal dataflow when hovering over a variable",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.90.0"
   },
