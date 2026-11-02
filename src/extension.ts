@@ -31,14 +31,18 @@ export async function activate(context: vscode.ExtensionContext) {
             index = text.indexOf(`module ${args.module}`);
             if (index === -1) index = text.search(new RegExp(`\\bmodule\\s+${args.module}\\b`));
         } else {
+            // 支援含 #(...) 參數覆寫的實例化定位
             index = text.search(new RegExp(`\\b${args.target}\\b\\s*\\(`));
             if (index === -1) index = text.search(new RegExp(`\\b${args.target}\\b`));
         }
 
         if (index !== -1 && args.signal) {
-            const signalIndex = text.indexOf(args.signal, index);
-            if (signalIndex !== -1 && signalIndex < index + 2000) {
-                index = signalIndex;
+            // 若為實例化且參數定義在 #(...) 中，擴大向前與向後搜尋範圍以精準定位參數或端口
+            const searchStart = Math.max(0, index - 800);
+            const subText = text.substring(searchStart, index + 2000);
+            const sigMatch = subText.search(new RegExp(`\\b${args.signal}\\b`));
+            if (sigMatch !== -1) {
+                index = searchStart + sigMatch;
             }
         }
 
@@ -82,6 +86,23 @@ export async function activate(context: vscode.ExtensionContext) {
             return;
         }
 
+        // 若選取的是 parameter，將參數傳遞鏈轉換為 TraceNode 加入區塊圖
+        if (tracker.isParameter(moduleName, signalName)) {
+            const paramTraces = tracker.traceParameter(moduleName, signalName);
+            const paramPaths = paramTraces.map(chain =>
+                chain.map(step => ({
+                    module: step.module,
+                    target: step.target,
+                    signal: `${step.paramName}=${step.resolvedValue}`,
+                    moduleType: step.moduleType,
+                    value: step.resolvedValue
+                }))
+            );
+            const panel = BlockDiagramPanel.createOrShow(context.extensionUri);
+            panel.addFlow(moduleName, signalName, paramPaths);
+            return;
+        }
+
         const paths = tracker.traceFull(moduleName, signalName);
         const panel = BlockDiagramPanel.createOrShow(context.extensionUri);
         panel.addFlow(moduleName, signalName, paths);
@@ -107,23 +128,57 @@ export async function activate(context: vscode.ExtensionContext) {
                 const moduleName = parser.findModuleByUri(document.uri);
                 if (!moduleName) return null;
 
-                const paths = tracker.traceFull(moduleName, word);
-                if (paths.length === 0 || (paths.length === 1 && paths[0].length === 1 && paths[0][0].signal === word)) {
-                    return null; 
-                }
-
                 const md = new vscode.MarkdownString();
                 md.isTrusted = true;
-                md.appendMarkdown('**Verilog Signal Dataflow:**\n\n');
-                
-                paths.forEach(p => {
-                    const strParts = p.map(node => {
-                        const argsTarget = encodeURIComponent(JSON.stringify({ module: node.module, target: node.target }));
-                        const argsSignal = encodeURIComponent(JSON.stringify({ module: node.module, target: node.target, signal: node.signal }));
-                        return `[${node.target}](command:verilogDataflow.goto?${argsTarget}).[${node.signal}](command:verilogDataflow.goto?${argsSignal})`;
+                let hasContent = false;
+
+                // 1. 檢查是否為 Parameter / Localparam，若是則回溯 Top Module 設定數值與傳遞鏈
+                if (tracker.isParameter(moduleName, word)) {
+                    const paramChains = tracker.traceParameter(moduleName, word);
+                    if (paramChains.length > 0) {
+                        hasContent = true;
+                        md.appendMarkdown('**Verilog Parameter Value Trace:**\n\n');
+                        paramChains.forEach(chain => {
+                            const finalStep = chain[chain.length - 1];
+                            const topStep = chain[0];
+                            md.appendMarkdown(`- **Resolved Value:** \`${finalStep.resolvedValue}\` *(from Top \`${topStep.target}\`)*\n`);
+                            const stepLinks = chain.map(step => {
+                                const argsTarget = encodeURIComponent(JSON.stringify({ module: step.module, target: step.target }));
+                                const argsParam = encodeURIComponent(JSON.stringify({ module: step.module, target: step.target, signal: step.paramName }));
+                                const exprSuffix = step.rawExpr && step.rawExpr !== step.resolvedValue
+                                    ? ` = \`${step.rawExpr}\` (\`${step.resolvedValue}\`)`
+                                    : ` = \`${step.resolvedValue}\``;
+                                return `[${step.target}](command:verilogDataflow.goto?${argsTarget}).[${step.paramName}](command:verilogDataflow.goto?${argsParam})${exprSuffix}`;
+                            });
+                            md.appendMarkdown('  ' + stepLinks.join(' -> ') + '\n');
+                        });
+                    }
+                }
+
+                // 2. 追蹤一般訊號 Dataflow
+                const paths = tracker.traceFull(moduleName, word);
+                const hasSignalFlow = !(paths.length === 0 || (paths.length === 1 && paths[0].length === 1 && paths[0][0].signal === word));
+
+                if (hasSignalFlow) {
+                    if (hasContent) {
+                        md.appendMarkdown('\n---\n\n');
+                    }
+                    hasContent = true;
+                    md.appendMarkdown('**Verilog Signal Dataflow:**\n\n');
+                    
+                    paths.forEach(p => {
+                        const strParts = p.map(node => {
+                            const argsTarget = encodeURIComponent(JSON.stringify({ module: node.module, target: node.target }));
+                            const argsSignal = encodeURIComponent(JSON.stringify({ module: node.module, target: node.target, signal: node.signal }));
+                            return `[${node.target}](command:verilogDataflow.goto?${argsTarget}).[${node.signal}](command:verilogDataflow.goto?${argsSignal})`;
+                        });
+                        md.appendMarkdown('- ' + strParts.join(' -> ') + '\n');
                     });
-                    md.appendMarkdown('- ' + strParts.join(' -> ') + '\n');
-                });
+                }
+
+                if (!hasContent) {
+                    return null;
+                }
 
                 return new vscode.Hover(md);
             }
