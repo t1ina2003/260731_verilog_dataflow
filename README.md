@@ -6,17 +6,19 @@ A VS Code extension that helps you trace Verilog signal dataflow by showing sign
 
 - **Signal Tracing**: Hover over any Verilog signal to see its complete dataflow path
 - **Hierarchical Tracking**: Traces signals through module instantiations (both up and down the hierarchy)
+- **Hierarchical Parameter Resolution**: Hover over any `parameter` or `localparam` in a child/leaf module to directly view the resolved value passed down from the Top module
 - **Automatic Parsing**: Automatically parses all `.v` and `.sv` files in your workspace
 - **Real-time Updates**: Monitors file changes and updates the signal database
 
 ## Usage
 
 1. Open a Verilog project in VS Code
-2. Hover over any signal name
+2. Hover over any signal or parameter name
 3. View the complete dataflow path showing:
    - Parent module connections (top-down)
    - Child module connections (bottom-up)
    - Full signal path through the design hierarchy
+   - Resolved parameter values and propagation chains from the Top module
 
 ## Example
 
@@ -33,10 +35,15 @@ top.clk -> submod.data_in -> submod.instance.port_a
 ## Known Limitations
 
 - Array indices in signal connections are simplified
-- Does not parse complex parameter expressions
 - Requires valid Verilog syntax
 
 ## Release Notes
+
+### 0.0.3
+
+- **Fix Parser Module Header Misidentification**: Prevented `module Name #(...) (...);` headers from being misidentified as module instantiations, restoring parent-module link tracing
+- **Nested Parentheses Support**: Supported nested parentheses inside `#(...)` parameter blocks and port connection expressions
+- **Hierarchical Parameter Value Resolution**: Hovering over a `parameter` or `localparam` in any child/leaf module now directly resolves and displays the final value passed down from the Top module along with the full parameter propagation chain
 
 ### 0.0.2
 
